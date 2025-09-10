@@ -30,7 +30,7 @@ class CollisionAvoidance:
         """Start moving forward."""
         logger.info("Moving forward")
         self.is_moving = True
-        await self.dog.go_forward(self.current_speed, 1000)
+        await self.dog.go_forward(self.current_speed, 10000)
 
     async def stop_moving(self):
         """Stop all movement."""

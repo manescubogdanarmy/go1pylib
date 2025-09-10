@@ -33,6 +33,7 @@ def parse_args():
     ap = argparse.ArgumentParser(description="Mine-like round object detection & labeling")
     ap.add_argument('--config', type=str, default=None, help='Path to mine_config.yaml')
     ap.add_argument('--simulation', action='store_true', help='Simulation mode (no robot movement)')
+    ap.add_argument('--no-simulation', action='store_true', help='Force disable simulation regardless of config')
     ap.add_argument('--auto-search', action='store_true', help='Enable autonomous lawn-mower style search')
     return ap.parse_args()
 
@@ -85,14 +86,17 @@ def run_manual(cfg: MineConfig):
         gui.stop()
 
 def run_auto(cfg: MineConfig):
+    import asyncio
+    logger.info(f"Auto-search starting with simulation.enabled={cfg.simulation.enabled}")
     if cfg.simulation.enabled:
-        # Lightweight fake dog for simulation without MQTT connection
         class FakeDog:  # pragma: no cover - simple simulation
             def set_mode(self, mode):
-                return
+                logger.debug(f"[SIM] set_mode({mode})")
             async def go_forward(self, speed: float, duration_ms: int):
+                logger.info(f"[SIM] forward pulse speed={speed:.2f} dur_ms={duration_ms}")
                 await asyncio.sleep(duration_ms/1000)
             async def turn_right(self, speed: float, duration_ms: int):
+                logger.info(f"[SIM] turn_right speed={speed:.2f} dur_ms={duration_ms}")
                 await asyncio.sleep(duration_ms/1000)
         dog = FakeDog()
     else:
@@ -110,14 +114,21 @@ def run_auto(cfg: MineConfig):
                          max_radius=cfg.vision.max_radius)
     gui = LabelGUI(Path(cfg.vision.save_dir))
     controller = MineMissionController(dog=dog, cfg=cfg, detector=det, gui=gui)
-    import asyncio
     asyncio.run(controller.run())
 
 if __name__ == '__main__':
     args = parse_args()
     cfg = MineConfig.load(Path(args.config) if args.config else None)
-    if args.simulation:
+    if args.simulation and args.no_simulation:
+        logger.warning("Both --simulation and --no-simulation provided; defaulting to real (simulation disabled)")
+        cfg.simulation.enabled = False
+    elif args.simulation:
         cfg.simulation.enabled = True
+    elif args.no_simulation:
+        cfg.simulation.enabled = False
+    else:
+        # keep config value
+        pass
     if args.auto_search:
         run_auto(cfg)
     else:

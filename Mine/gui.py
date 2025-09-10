@@ -53,7 +53,7 @@ class LabelGUI:
                 color = (0, 255, 0) if i == 0 else (0, 200, 255)
                 cv2.circle(display, (d.center_x, d.center_y), d.radius, color, 2)
                 cv2.putText(display, f"r={d.radius}", (d.center_x+5, d.center_y+5), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color, 1)
-            cv2.putText(display, "y=yes n=no s=skip q=quit", (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255,255,255), 2)
+            cv2.putText(display, "Keys: y=mine n=not_mine s=skip q=quit", (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255,255,255), 2)
             cv2.imshow("Mine Detection", display)
             key = cv2.waitKey(0) & 0xFF
             if key == ord('q'):

@@ -18,9 +18,9 @@ logging:
 simulation:
   enabled: true
 area:
-  width_m: 6.0
-  height_m: 6.0
-  lane_width_m: 2.0
+  width_m: 4.0
+  height_m: 4.0
+  lane_width_m: 1.0
 movement:
   walk_speed_fraction: 0.25
   forward_pulse_m: 1.0

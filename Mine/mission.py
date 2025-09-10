@@ -15,6 +15,10 @@ from .telemetry import MineTelemetryLogger
 from .config import MineConfig
 import contextlib
 import asyncio
+try:
+    import cv2  # type: ignore
+except Exception:  # pragma: no cover
+    cv2 = None  # type: ignore
 
 logger = logging.getLogger(__name__)
 
@@ -101,14 +105,26 @@ class MineMissionController:
             dets = self.detector.capture_and_detect()
             if dets:
                 await self._handle_detections(dets)
+            else:
+                # show a live preview window even when no detections so user sees feed
+                if cv2 is not None:
+                    frame = self.detector.last_frame()
+                    if frame is not None:
+                        preview = frame.copy()
+                        cv2.putText(preview, "Scanning 7x7m grid...", (10,20), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0,255,255), 2)
+                        cv2.putText(preview, "Keys: y=mine n=not_mine s=skip q=quit", (10,45), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255,255,255), 2)
+                        cv2.imshow("Mine Detection", preview)
+                        cv2.waitKey(1)
             await asyncio.sleep(0)  # yield
         if self.state == STATE_SEARCH and lane != self._lanes[-1]:
             await self._lane_transition()
 
     async def _forward(self, speed: float, duration_ms: int, note: str = ""):
         if self.cfg.simulation.enabled:
+            logger.debug(f"Simulation forward skip (sleep) speed={speed:.2f} dur_ms={duration_ms}")
             await asyncio.sleep(duration_ms/1000)
         else:
+            logger.info(f"Forward pulse speed={speed:.2f} dur_ms={duration_ms}")
             await self.dog.go_forward(speed, duration_ms)
         self.command_log.append(CommandRecord('forward', speed, duration_ms))
         if self.telemetry:

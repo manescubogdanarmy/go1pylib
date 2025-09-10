@@ -1,0 +1,36 @@
+area:
+  width_m: 20.0
+  height_m: 20.0
+  lane_width_m: 3.0
+movement:
+  walk_speed_fraction: 0.3
+  max_search_speed_mps: 1.0
+  forward_pulse_m: 1.0
+  turn_90_ms: 1500
+vision:
+  enabled: true
+  model: yolov8n.pt
+  conf_threshold: 0.55
+  debounce_frames: 5
+  min_positive_frames: 3
+  camera_index: 0
+approach:
+  center_threshold_pct: 5
+  forward_pulse_ms: 600
+  stop_distance_m: 2.0
+timeouts:
+  lost_target_s: 5
+interaction:
+  wait_s: 15
+return:
+  strategy: reverse_log
+safety:
+  min_battery_start_pct: 30
+  min_battery_runtime_pct: 15
+  enable_collision_adapter: true
+logging:
+  level: INFO
+  telemetry: true
+  telemetry_dir: SnD/logs
+simulation:
+  enabled: false

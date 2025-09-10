@@ -1,0 +1,19 @@
+vision:
+  enabled: true
+  camera_index: 0
+  blur_kernel: 5
+  canny_low: 50
+  canny_high: 150
+  dp: 1.2
+  min_dist: 40
+  param1: 120
+  param2: 30
+  min_radius: 10
+  max_radius: 160
+  save_dir: Mine/dataset
+logging:
+  level: INFO
+  telemetry: true
+  telemetry_dir: Mine/logs
+simulation:
+  enabled: true

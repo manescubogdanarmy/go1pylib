@@ -22,6 +22,19 @@ class MineVisionConfig:
     save_dir: str
 
 @dataclass
+class MineSearchAreaConfig:
+    width_m: float
+    height_m: float
+    lane_width_m: float
+
+@dataclass
+class MineMovementConfig:
+    walk_speed_fraction: float
+    forward_pulse_m: float
+    turn_90_ms: int
+    max_search_speed_mps: float
+
+@dataclass
 class MineLoggingConfig:
     level: str
     telemetry: bool
@@ -36,6 +49,8 @@ class MineConfig:
     vision: MineVisionConfig
     logging: MineLoggingConfig
     simulation: MineSimulationConfig
+    area: MineSearchAreaConfig
+    movement: MineMovementConfig
 
     @staticmethod
     def load(path: Path | None = None) -> "MineConfig":
@@ -45,5 +60,7 @@ class MineConfig:
         return MineConfig(
             vision=MineVisionConfig(**raw['vision']),
             logging=MineLoggingConfig(**raw['logging']),
-            simulation=MineSimulationConfig(**raw['simulation'])
+            simulation=MineSimulationConfig(**raw['simulation']),
+            area=MineSearchAreaConfig(**raw['area']),
+            movement=MineMovementConfig(**raw['movement'])
         )

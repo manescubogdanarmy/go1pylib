@@ -15,6 +15,7 @@ This module parallels the structure of `SnD` but focuses on detecting generic ro
   - `Mine/dataset/mine/`
   - `Mine/dataset/not_mine/`
 - Telemetry CSV with detection latency & counts
+- (Optional) Autonomous lawn‑mower style search (`--auto-search`) similar to SnD using lane traversal + pause-on-detection labeling
 - YAML configuration similar style to `SnD`
 
 ## Quick Start
@@ -22,9 +23,14 @@ Install dependencies (if not already):
 ```
 pip install .[mine]
 ```
-Run (simulation agnostic; no robot dependency):
+Run (manual detection loop):
 ```
 python Mine/main.py --config Mine/mine_config.yaml
+```
+
+Autonomous search mode (robot movement with simulated or real pulses depending on config):
+```
+python Mine/main.py --config Mine/mine_config.yaml --auto-search
 ```
 Press `q` in the OpenCV window to exit.
 
@@ -40,8 +46,14 @@ Press `q` in the OpenCV window to exit.
 | vision | param2 | Accumulator threshold (smaller -> more false positives) |
 | vision | min_radius/max_radius | Radius bounds |
 | vision | save_dir | Root directory for captured crops |
+| area | width_m/height_m | Search rectangle dimensions |
+| area | lane_width_m | Spacing between vertical lanes |
+| movement | walk_speed_fraction | Fraction of max speed for pulses |
+| movement | forward_pulse_m | Forward segment length per pulse |
+| movement | turn_90_ms | Duration to produce ~90° turn |
+| movement | max_search_speed_mps | Calibrated max speed estimate |
 | logging | telemetry | Enable CSV logging |
-| simulation | enabled | Placeholder (reserved for robot integration) |
+| simulation | enabled | Skip physical movement (timed sleeps) |
 
 ## Telemetry
 CSV written to `Mine/logs/mine_session_<UTCSTAMP>.csv` with columns:

@@ -1,0 +1,22 @@
+cameras:
+  - { name: front_left,  uri: "rtsp://<robot-ip>/front_left",  enabled: true }
+  - { name: front_right, uri: "rtsp://<robot-ip>/front_right", enabled: true }
+  - { name: side_left,   uri: "rtsp://<robot-ip>/side_left",   enabled: true }
+  - { name: side_right,  uri: "rtsp://<robot-ip>/side_right",  enabled: true }
+  - { name: rear,        uri: "rtsp://<robot-ip>/rear",        enabled: true }
+vision:
+  blur_kernel: 5
+  canny_low: 50
+  canny_high: 150
+  dp: 1.2
+  min_dist: 40
+  param1: 120
+  param2: 30
+  min_radius: 10
+  max_radius: 160
+dataset:
+  root: Mine2/dataset
+  mine_dir: Mine2/dataset/mine
+  not_mine_dir: Mine2/dataset/not_mine
+  unsorted_dir: Mine2/dataset/unsorted
+logging_level: INFO

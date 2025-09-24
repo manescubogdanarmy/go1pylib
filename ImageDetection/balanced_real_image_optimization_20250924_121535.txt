@@ -1,0 +1,18 @@
+Balanced Real Image Detection Optimization Results
+==================================================
+Timestamp: 2025-09-24 12:15:35
+
+Image: 500px-Minen.jpg
+Expected mines: 3
+Detected mines: 0
+Score: 3
+Best parameters: {'param1': 50, 'param2': 20, 'min_dist': 40, 'min_radius': 15, 'max_radius': 70}
+Detection details: []
+
+Image: tm-46_ap-mine.jpeg.jpg
+Expected mines: 1
+Detected mines: 1
+Score: 0
+Best parameters: {'param1': 48, 'param2': 19, 'min_dist': 38, 'min_radius': 12, 'max_radius': 75}
+Detection details: [(652, 428, 21)]
+

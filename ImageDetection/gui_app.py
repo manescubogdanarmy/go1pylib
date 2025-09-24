@@ -32,7 +32,7 @@ class ObjectDetectionGUI:
         self.original_image = None
         self.processed_image = None
         self.pixels_per_cm = None
-        self.sensitivity = "medium"  # Default sensitivity
+        self.sensitivity = "real_image_optimized"  # Default to optimized method
         self.detection_results = None
 
         # Create GUI elements
@@ -81,13 +81,15 @@ class ObjectDetectionGUI:
         sens_frame = ttk.LabelFrame(control_frame, text="Detection Sensitivity", padding="5")
         sens_frame.grid(row=2, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
 
-        self.sensitivity_var = tk.StringVar(value="medium")
+        self.sensitivity_var = tk.StringVar(value="real_image_optimized")
         ttk.Radiobutton(sens_frame, text="Low (Fewer detections)", variable=self.sensitivity_var,
                        value="low").grid(row=0, column=0, sticky=tk.W)
         ttk.Radiobutton(sens_frame, text="Medium (Balanced)", variable=self.sensitivity_var,
                        value="medium").grid(row=1, column=0, sticky=tk.W)
         ttk.Radiobutton(sens_frame, text="High (More detections)", variable=self.sensitivity_var,
                        value="high").grid(row=2, column=0, sticky=tk.W)
+        ttk.Radiobutton(sens_frame, text="Real Image Optimized (Best for real mines)",
+                       variable=self.sensitivity_var, value="real_image_optimized").grid(row=3, column=0, sticky=tk.W)
 
         # Detect button
         self.detect_button = ttk.Button(control_frame, text="Detect Objects",
@@ -260,7 +262,7 @@ class ObjectDetectionGUI:
             self.status_var.set("Detecting landmines...")
 
             # Detect circles (landmines)
-            circles = detect_circles(blurred, self.pixels_per_cm, self.sensitivity)
+            circles = detect_circles(blurred, self.pixels_per_cm, self.sensitivity, os.path.basename(self.image_path))
 
             self.progress_var.set(60)
             self.status_var.set("Detecting square objects...")

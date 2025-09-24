@@ -1,0 +1,11 @@
+Final Real Image Detection Optimization Results
+==================================================
+Timestamp: 2025-09-24 12:16:58
+
+Image: 500px-Minen.jpg
+Expected mines: 3
+Detected mines: 13
+Score: 10
+Best parameters: {'param1': 48, 'param2': 19, 'min_dist': 45, 'min_radius': 12, 'max_radius': 75}
+Detection details: [(116, 132, 61), (142, 228, 74), (146, 176, 63), (206, 172, 74), (234, 218, 72), (274, 180, 74), (280, 228, 74), (292, 130, 55), (322, 208, 68), (352, 244, 71), (358, 132, 74), (360, 176, 35), (408, 62, 41)]
+

@@ -123,6 +123,51 @@ def test_challenging_detection():
 
     return result
 
+def create_ellipse_test_image():
+    """
+    Create a test image with an elliptical landmine to test ellipse detection.
+    """
+    # Create a blank image (800x600, white background)
+    image = np.ones((600, 800, 3), dtype=np.uint8) * 255
+
+    # Draw an elliptical landmine (simulating perspective distortion)
+    # Ellipse centered at (400, 300) with axes 50x35 (elliptical)
+    cv2.ellipse(image, (400, 300), (50, 35), 45, 0, 360, (30, 30, 30), -1)  # Dark elliptical landmine
+
+    # Add some noise/texture to make detection more realistic
+    noise = np.random.randint(0, 30, (600, 800, 3), dtype=np.uint8)
+    image = cv2.addWeighted(image, 0.9, noise, 0.1, 0)
+
+    return image
+
+def test_ellipse_detection():
+    """
+    Test the ellipse detection capability.
+    """
+    print("Creating ellipse test image...")
+    ellipse_image = create_ellipse_test_image()
+
+    # Save test image
+    cv2.imwrite("ellipse_test.jpg", ellipse_image)
+    print("Ellipse test image saved as 'ellipse_test.jpg'")
+
+    # Run detection
+    print("\nRunning ellipse detection...")
+    result, circles, squares = main("ellipse_test.jpg", pixels_per_cm=None, display=False)
+
+    print("\nEllipse Test Results:")
+    print(f"Expected landmines: 1 (elliptical)")
+    print(f"Detected landmines: {len(circles)}")
+    for i, (x, y, r) in enumerate(circles, 1):
+        print(f"  Landmine {i}: Center=({x},{y}), Radius={r} pixels")
+
+    if len(circles) >= 1:
+        print("✅ Ellipse detection test passed! Elliptical landmine detected.")
+    else:
+        print("⚠️  Ellipse detection test failed. No elliptical landmine detected.")
+
+    return result
+
 if __name__ == "__main__":
     # Run both tests
     print("Running standard test...")
@@ -131,3 +176,7 @@ if __name__ == "__main__":
     print("\n" + "="*50)
     print("Running challenging test...")
     test_challenging_detection()
+
+    print("\n" + "="*50)
+    print("Running ellipse test...")
+    test_ellipse_detection()

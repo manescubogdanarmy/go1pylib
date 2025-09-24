@@ -10,13 +10,7 @@ This document outlines the steps to implement a Python program that detects roun
 
 ## Algorithm Overview
 
-The image detection algorithm consists of the following main steps:
-
-1. Load and preprocess the image
-2. Detect circular objects using Hough Circle Transform
-3. Detect square/rectangular objects using contour detection
-4. Draw green bounding squares around detected objects with labels
-5. Display or save the result
+The image detection algorithm is designed to detect landmines (round objects with diameters between 15 cm and 50 cm) and square objects in images. The program will mark detected objects with green labeled bounding squares.
 
 ## Implementation Steps
 
@@ -43,10 +37,20 @@ def load_and_preprocess_image(image_path):
     return image, blurred
 ```
 
-### Step 3: Detect Circular Objects
+### Step 3: Detect Circular Objects (Landmines)
 
 ```python
-def detect_circles(blurred_image):
+def detect_circles(blurred_image, pixels_per_cm=None):
+    # Calculate pixel radii based on landmine diameters (15-50 cm)
+    # If pixels_per_cm is known, use it to calculate min/max radius in pixels
+    if pixels_per_cm:
+        min_radius_pixels = int((15 / 2) * pixels_per_cm)  # 7.5 cm radius
+        max_radius_pixels = int((50 / 2) * pixels_per_cm)  # 25 cm radius
+    else:
+        # Default pixel values - adjust based on your camera setup and distance
+        min_radius_pixels = 20  # Approximate for typical setups
+        max_radius_pixels = 80  # Approximate for typical setups
+    
     # Use Hough Circle Transform to detect circles
     circles = cv2.HoughCircles(
         blurred_image,
@@ -55,8 +59,8 @@ def detect_circles(blurred_image):
         minDist=50,
         param1=50,
         param2=30,
-        minRadius=10,
-        maxRadius=100
+        minRadius=min_radius_pixels,
+        maxRadius=max_radius_pixels
     )
     
     detected_circles = []
@@ -100,13 +104,13 @@ def detect_squares(blurred_image):
 
 ```python
 def draw_detections(image, circles, squares):
-    # Draw circles
+    # Draw circles (landmines)
     for (x, y, r) in circles:
         # Draw green bounding square
         cv2.rectangle(image, (x - r, y - r), (x + r, y + r), (0, 255, 0), 2)
         
         # Add label
-        cv2.putText(image, "Circle", (x - r, y - r - 10), 
+        cv2.putText(image, "Landmine", (x - r, y - r - 10), 
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
     
     # Draw squares
@@ -124,12 +128,12 @@ def draw_detections(image, circles, squares):
 ### Step 6: Main Function
 
 ```python
-def main(image_path):
+def main(image_path, pixels_per_cm=None):
     # Load and preprocess image
     image, blurred = load_and_preprocess_image(image_path)
     
-    # Detect circles
-    circles = detect_circles(blurred)
+    # Detect circles (landmines)
+    circles = detect_circles(blurred, pixels_per_cm)
     
     # Detect squares
     squares = detect_squares(blurred)
@@ -147,7 +151,12 @@ def main(image_path):
 
 if __name__ == "__main__":
     image_path = "path/to/your/image.jpg"  # Replace with actual image path
-    main(image_path)
+    
+    # Calculate pixels_per_cm based on your camera setup
+    # Example: If a 10cm object appears as 100 pixels in the image, pixels_per_cm = 10
+    pixels_per_cm = None  # Set to your calculated value, or None for defaults
+    
+    main(image_path, pixels_per_cm)
 ```
 
 ## Usage
@@ -159,15 +168,24 @@ if __name__ == "__main__":
 
 ## Notes
 
-- The circle detection parameters (minDist, param1, param2, minRadius, maxRadius) may need adjustment based on your specific images and object sizes.
+- **Landmine Detection Parameters**: The algorithm is specifically tuned for detecting landmines with diameters between 15 cm and 50 cm. The `pixels_per_cm` parameter should be calculated based on your camera's field of view and distance from the ground.
+  
+  **To calculate `pixels_per_cm`:**
+  1. Place a known-size object (e.g., 10 cm wide) in the scene at the expected distance
+  2. Capture an image and measure how many pixels the object spans
+  3. Divide the pixel measurement by the real-world measurement (e.g., 100 pixels / 10 cm = 10 pixels_per_cm)
+  
+- The circle detection parameters (minDist, param1, param2) may need adjustment based on image quality and environmental conditions.
 - The square detection uses a simple aspect ratio check. For more complex scenarios, you might need to implement additional checks (e.g., angle measurements).
-- This is a basic implementation. For production use, consider adding error handling, parameter tuning, and performance optimizations.
-- The algorithm assumes objects are well-separated and clearly visible in the image. Noisy or complex images may require additional preprocessing steps.
+- This is a basic implementation for landmine detection. For safety-critical applications, consider adding multiple validation steps and expert review.
+- The algorithm assumes landmines appear as circular shapes in the image. Camouflaged or partially buried landmines may not be detected reliably.
 
 ## Potential Improvements
 
-- Add color-based filtering to focus on specific object colors
+- Add color-based filtering to focus on specific landmine colors or patterns
 - Implement more sophisticated shape detection algorithms
 - Add confidence scores for detections
-- Support for video stream processing
-- Integration with machine learning models for better accuracy
+- Support for video stream processing from drone or ground vehicle cameras
+- Integration with machine learning models for better accuracy in varied terrain
+- Add distance estimation based on detected object size
+- Implement safety zones around detected landmines

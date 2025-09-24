@@ -101,7 +101,7 @@ class ObjectDetectionGUI:
 
         # Results frame
         results_frame = ttk.LabelFrame(control_frame, text="Results", padding="5")
-        results_frame.grid(row=4, column=0, sticky=(tk.W, tk.E))
+        results_frame.grid(row=5, column=0, sticky=(tk.W, tk.E))
 
         self.results_text = tk.Text(results_frame, height=8, width=25, wrap=tk.WORD)
         scrollbar = ttk.Scrollbar(results_frame, orient=tk.VERTICAL, command=self.results_text.yview)

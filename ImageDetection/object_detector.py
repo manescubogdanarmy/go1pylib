@@ -167,36 +167,143 @@ def detect_squares(blurred_image):
     Returns:
         list: List of detected squares as (x, y, width, height) tuples
     """
+    # Try multiple approaches for square detection
+
+    # Approach 1: Contour-based detection (current method)
+    squares_contour = detect_squares_contour(blurred_image)
+
+    # Approach 2: Morphological operations for more robust detection
+    squares_morph = detect_squares_morphological(blurred_image)
+
+    # Combine results and remove duplicates
+    all_squares = squares_contour + squares_morph
+    detected_squares = remove_duplicate_squares(all_squares)
+
+    return detected_squares
+
+def detect_squares_contour(blurred_image):
+    """Contour-based square detection"""
     # Apply Canny edge detection
     edges = cv2.Canny(blurred_image, 50, 150)
 
     # Dilate edges to connect nearby edges
     kernel = np.ones((3, 3), np.uint8)
-    dilated = cv2.dilate(edges, kernel, iterations=2)
+    dilated = cv2.dilate(edges, kernel, iterations=1)
 
     # Find contours
     contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     detected_squares = []
     for contour in contours:
+        # Skip if contour is too circular (likely a landmine)
+        if is_too_circular(contour):
+            continue
+
         # Approximate the contour
         peri = cv2.arcLength(contour, True)
-        approx = cv2.approxPolyDP(contour, 0.04 * peri, True)
+        approx = cv2.approxPolyDP(contour, 0.03 * peri, True)
 
         # Check if it's a quadrilateral
         if len(approx) == 4:
-            # Check if it's roughly a square (aspect ratio close to 1)
             x, y, w, h = cv2.boundingRect(approx)
             aspect_ratio = float(w) / h
 
-            # More lenient aspect ratio check
-            if 0.7 <= aspect_ratio <= 1.3:
-                # Check minimum size (avoid noise)
+            # Balanced aspect ratio check
+            if 0.75 <= aspect_ratio <= 1.25:
                 area = cv2.contourArea(contour)
-                if area > 500:  # Minimum area threshold
+                if 300 <= area <= 3000:  # Reasonable size range
+                    rect_area = w * h
+                    fill_ratio = area / rect_area
+                    if fill_ratio > 0.6:
+                        detected_squares.append((x, y, w, h))
+
+    return detected_squares
+
+def detect_squares_morphological(blurred_image):
+    """Morphological operations based square detection"""
+    # Threshold the image to get dark regions
+    _, thresh = cv2.threshold(blurred_image, 50, 255, cv2.THRESH_BINARY_INV)
+
+    # Morphological operations to clean up noise
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+    cleaned = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=1)
+    cleaned = cv2.morphologyEx(cleaned, cv2.MORPH_CLOSE, kernel, iterations=1)
+
+    # Find contours on the cleaned binary image
+    contours, _ = cv2.findContours(cleaned, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    detected_squares = []
+    for contour in contours:
+        # Skip if contour is too circular (likely a landmine)
+        if is_too_circular(contour):
+            continue
+
+        # Get bounding rectangle
+        x, y, w, h = cv2.boundingRect(contour)
+        aspect_ratio = float(w) / h
+
+        # Check for square-like shapes
+        if 0.8 <= aspect_ratio <= 1.2:  # Square aspect ratio
+            area = cv2.contourArea(contour)
+            if 400 <= area <= 2500:  # Size constraints
+                # Additional check: ensure it's reasonably filled
+                rect_area = w * h
+                fill_ratio = area / rect_area
+                if fill_ratio > 0.7:
                     detected_squares.append((x, y, w, h))
 
     return detected_squares
+
+def is_too_circular(contour, circularity_threshold=0.85):
+    """
+    Check if a contour is too circular to be considered a square.
+
+    Args:
+        contour: The contour to check
+        circularity_threshold: Threshold above which shape is considered circular
+
+    Returns:
+        bool: True if the contour is too circular
+    """
+    area = cv2.contourArea(contour)
+    if area == 0:
+        return False
+
+    # Calculate perimeter
+    perimeter = cv2.arcLength(contour, True)
+
+    # Calculate circularity: 4π*area / perimeter²
+    # Perfect circle has circularity = 1, squares have lower values
+    circularity = 4 * np.pi * area / (perimeter * perimeter)
+
+    return circularity > circularity_threshold
+
+def remove_duplicate_squares(squares, threshold=20):
+    """Remove duplicate squares that are close to each other"""
+    if not squares:
+        return squares
+
+    # Sort by x coordinate
+    squares_sorted = sorted(squares, key=lambda s: s[0])
+    filtered_squares = []
+
+    for square in squares_sorted:
+        x, y, w, h = square
+        is_duplicate = False
+
+        # Check against already accepted squares
+        for accepted in filtered_squares:
+            ax, ay, aw, ah = accepted
+            # Check if centers are close
+            center_dist = ((x + w/2 - ax - aw/2)**2 + (y + h/2 - ay - ah/2)**2)**0.5
+            if center_dist < threshold:
+                is_duplicate = True
+                break
+
+        if not is_duplicate:
+            filtered_squares.append(square)
+
+    return filtered_squares
 
 def draw_detections(image, circles, squares):
     """

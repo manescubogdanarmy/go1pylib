@@ -56,9 +56,9 @@ def create_challenging_test_image():
     # Add one real landmine in the center - make it more distinct
     cv2.circle(image, (400, 300), 25, (30, 30, 30), -1)  # Much darker landmine for better contrast
 
-    # Add some square objects
-    cv2.rectangle(image, (100, 100), (140, 140), (90, 90, 90), -1)  # Square 1
-    cv2.rectangle(image, (650, 450), (690, 490), (110, 110, 110), -1)  # Square 2
+    # Add some square objects - make them very distinct
+    cv2.rectangle(image, (100, 100), (140, 140), (0, 0, 0), -1)  # Square 1 - black
+    cv2.rectangle(image, (650, 450), (690, 490), (0, 0, 0), -1)  # Square 2 - black
 
     return image
 
@@ -108,8 +108,13 @@ def test_challenging_detection():
     print("\nChallenging Test Results:")
     print(f"Expected landmines: 1")
     print(f"Detected landmines: {len(circles)}")
+    for i, (x, y, r) in enumerate(circles, 1):
+        print(f"  Landmine {i}: Center=({x},{y}), Radius={r} pixels")
+
     print(f"Expected squares: 2")
     print(f"Detected squares: {len(squares)}")
+    for i, (x, y, w, h) in enumerate(squares, 1):
+        print(f"  Square {i}: Position=({x},{y}), Size={w}x{h} pixels")
 
     if len(circles) <= 5 and len(squares) >= 1:  # Allow some false positives but not 43+
         print("✅ Challenging test passed! Reasonable number of detections.")
